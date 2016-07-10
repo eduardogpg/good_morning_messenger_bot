@@ -11,7 +11,7 @@ app.use(bodyParser.json());
 app.listen((process.env.PORT || CUSTOME_PORT));
 
 app.get('/', function (req, res) {
-    res.send('Hola Mundo');
+  res.send('Hola Mundo');
 });
 
 app.get('/webhook', function (req, res) {
@@ -27,13 +27,10 @@ app.post('/webhook', function (req, res) {
  
   if (data.object == 'page') {
     data.entry.forEach(function(pageEntry) {
-
       pageEntry.messaging.forEach(function(messagingEvent) {
-      	
       	if (messagingEvent.message) {
           receivedMessage(messagingEvent);
         }
-
       });
     });
     res.sendStatus(200);
@@ -63,50 +60,43 @@ function receivedMessage(event) {
 }
 
 function sendGenericMessage(recipientId) {
+  new_elements = []
+  new_elements.push( getGenericElementMessage() )
+  
   var messageData = {
     recipient: {
       id: recipientId
     },
-    message: {
+    message: {	
       attachment: {
         type: "template",
         payload: {
           template_type: "generic",
-          elements: [{
-            title: "rift",
-            subtitle: "Next-generation virtual reality",
-            item_url: "https://www.oculus.com/en-us/rift/",               
-            image_url: "http://messengerdemo.parseapp.com/img/rift.png",
-            buttons: [{
-              type: "web_url",
-              url: "https://www.oculus.com/en-us/rift/",
-              title: "Open Web URL"
-            }, {
-              type: "postback",
-              title: "Call Postback",
-              payload: "Payload for first bubble",
-            }],
-          }, {
-            title: "touch",
-            subtitle: "Your Hands, Now in VR",
-            item_url: "https://www.oculus.com/en-us/touch/",               
-            image_url: "http://messengerdemo.parseapp.com/img/touch.png",
-            buttons: [{
-              type: "web_url",
-              url: "https://www.oculus.com/en-us/touch/",
-              title: "Open Web URL"
-            }, {
-              type: "postback",
-              title: "Call Postback",
-              payload: "Payload for second bubble",
-            }]
-          }]
+          elements: new_elements,
         }
       }
     }
   };  
-
   callSendAPI(messageData);
+}
+
+function getGenericElementMessage(){
+  return {
+    title: "rift",
+    subtitle: "Next-generation virtual reality",
+    item_url: "https://www.oculus.com/en-us/rift/",               
+    image_url: "http://messengerdemo.parseapp.com/img/rift.png",
+    buttons: [{
+        type: "web_url",
+        url: "https://www.oculus.com/en-us/rift/",
+        title: "Open Web URL"
+      }, {
+        type: "postback",
+        title: "Call Postback",
+        payload: "Payload for first bubble",
+      }
+    ],
+  }
 }
 
 function sendTextMessage(recipientId, messageText) {
@@ -137,6 +127,5 @@ function callSendAPI(messageData) {
   	}
   });  
 }
-
 
 console.log("El servidor se encuentra a la escucha en el puerto " + CUSTOME_PORT)
