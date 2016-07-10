@@ -1,14 +1,44 @@
-Necesitamos realizar 
+# Say Good Morning
 
-https://developers.facebook.com/docs/messenger-platform/product-overview/setup
+This is a simple messenger bot, with the goal is say Good morning every day with a especial message around 7:30 am.
 
-install express
-	 npm install express body-parser request --save
-User negroni para visualizar nuestro proyecto en linea
-	./ngrok http 3000
+You can modify this project easily.
 
-token:
-	toke_to_good_morging_app
+Technologies :
+    
+  - Java Script
+  - NodeJS
+  - Express Framework
+  
+You can also see the official documentation:
 
-Page access token
-EAAZApLBZBX0OsBALeArfInOwdxSy8ZCOuCrl0QZALUFRZBwmONWRqIoVN4WVa8ZA2iT5IyoQJ4L9DINKvy8Qno7kzcXjyiYXItxMbISRDVDd9ymEr857tKSAIPcwOFkx1FNDf5BtA1pMcBDApOCQdg13lBGRy8cSBC4epTKsxYJeM4zzCfg05K
+link [Facebook Documentation][facebook]
+
+### Run local
+
+Install NodeJS
+
+```Js
+$ Node
+```
+
+Install expresss
+
+```Js
+$ npm install express body-parser request --save
+```
+
+If you want the official example
+```js
+$ npm install messenger-bot
+```
+For the webhook that facebook expects you need use ngrok, download [here][ngrok]
+
+```js
+$ ./ngrok http 3000
+```
+
+Once run the command is necesary put the URL in the field URL webhook facebook, Important not stop the execution this program, because is necesary restart the app (meaning create new app).
+
+[facebook]: <https://developers.facebook.com/docs/messenger-platform/quickstart>
+[ngrok]: <https://ngrok.com/>
