@@ -40,5 +40,26 @@ $ ./ngrok http 3000
 
 Once run the command is necesary put the URL in the field URL webhook facebook, Important not stop the execution this program, because is necesary restart the app (meaning create new app).
 
+
+Deploy whit Heroku
+
+
+```js
+$ npm init
+$ heroku login
+$ heroku create
+$ git push heroku master
+```
+
+Update Heroku
+
+```js
+$ git add .
+$ git commit -m 'Your change'
+$ git push heroku master
+```
+
+
+
 [facebook]: <https://developers.facebook.com/docs/messenger-platform/quickstart>
 [ngrok]: <https://ngrok.com/>
