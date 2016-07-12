@@ -3,12 +3,22 @@ var bodyParser = require('body-parser');
 var request = require('request');
 var app = express();
 
-PAGE_ACCESS_TOKEN = 'EAAMf8hvIsAYBAFRutDrf88S6DlkfMopnH4pc45iZAl5pHvFasxasWn0zHIKFT4IGjTBFPBXZBv2Ro9bMlCl2Dc9s8XXiZCh3qtBmHEsZAlypg3HkVTljcP2fMGmtSFquKk4nznnPvhZCGSzPe2xIZCTEZAyBXui9p5DoN0NaddTNbysqRgJHjYq'
+PAGE_ACCESS_TOKEN = 'EAAEGnfkOXJABAFmpaZAyc3s1ghK7kBKAaPWJIUbQH4SSg3uY9L0c2GHMie99kWdGuAeNWkkcEEANNEgt8b8wHq3MZAWCQUAZC7rNtXmIHCApIWLectSBonJe3n0gfK3UmRRpJn0Sxy07KMHfXG6ukpLixRPBlKELtUJBkeXZCXNFrM1tzyZCA'
 CUSTOME_PORT = 3000
+REPEAT_WORLD = "repite "
+WEATHER = "clima"
+TEMPERATURE = "temperatura"
+WORKSHOP = "taller"
 
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
-app.listen((process.env.PORT || CUSTOME_PORT));
+//app.listen((process.env.PORT || CUSTOME_PORT));
+
+var server = app.listen( CUSTOME_PORT, function(){
+  var port = server.address().port
+  console.log("El servidor se encuentra a la escucha en el puerto " + port)
+});
+
 
 app.get('/', function (req, res) {
   res.send('Hola Mundo');
@@ -28,9 +38,11 @@ app.post('/webhook', function (req, res) {
   if (data.object == 'page') {
     data.entry.forEach(function(pageEntry) {
       pageEntry.messaging.forEach(function(messagingEvent) {
-      	if (messagingEvent.message) {
+      	
+        if (messagingEvent.message) {
           receivedMessage(messagingEvent);
         }
+
       });
     });
     res.sendStatus(200);
@@ -44,17 +56,36 @@ function receivedMessage(event) {
   var messageAttachments = message.attachments;
 
   console.log("Nuevo mensaje de " + senderID)
-  if (messageText) {
+  console.log(messageText);
 
-    switch (messageText) {
+  if (messageText) {
+    if (isContainsWorld(messageText, REPEAT_WORLD)){
+      
+      message = repeatWorld(messageText);
+      sendTextMessage(senderID, message);
+
+    }else if (isContainsWorld(messageText, WEATHER) || isContainsWorld(messageText, TEMPERATURE) ){
+      
+      message = GetWeather();
+      sendTextMessage(senderID, message);
+
+    }else if (isContainsWorld(messageText, WORKSHOP) ){
+
+      var message = "El día viernes a las 5 de la tarde horario de México.";
+      sendTextMessage(senderID, message);
+
+    }else{
+      
+      switch (messageText) {
       case 'generic':
-      	console.log("Vamos a enviar link");
+        console.log("Vamos a enviar link");
         sendGenericMessage(senderID);
         break;
-
       default:
-      	console.log("Vamos a enviar texto");
+        console.log("Vamos a enviar texto");
         sendTextMessage(senderID, messageText);
+        //sendGifMessage(senderID);
+      }  
     }
   } 
 }
@@ -62,7 +93,7 @@ function receivedMessage(event) {
 function sendGenericMessage(recipientId) {
   new_elements = []
   new_elements.push( getGenericElementMessage() )
-  
+
   var messageData = {
     recipient: {
       id: recipientId
@@ -81,21 +112,22 @@ function sendGenericMessage(recipientId) {
 }
 
 function getGenericElementMessage(){
+  new_buttons = []
+  new_buttons.push( getButtonMessage() )
   return {
-    title: "rift",
+    title: "Hello world",
     subtitle: "Next-generation virtual reality",
     item_url: "https://www.oculus.com/en-us/rift/",               
     image_url: "http://messengerdemo.parseapp.com/img/rift.png",
-    buttons: [{
-        type: "web_url",
-        url: "https://www.oculus.com/en-us/rift/",
-        title: "Open Web URL"
-      }, {
-        type: "postback",
-        title: "Call Postback",
-        payload: "Payload for first bubble",
-      }
-    ],
+    buttons: new_buttons,
+  }
+}
+
+function getButtonMessage(){
+  return {
+    type: "web_url",
+    url: "https://www.oculus.com/en-us/rift/",
+    title: "Open Web URL"
   }
 }
 
@@ -106,6 +138,23 @@ function sendTextMessage(recipientId, messageText) {
     },
     message: {
       text: messageText
+    }
+  };
+  callSendAPI(messageData);
+}
+
+function sendGifMessage(recipientId) {
+  var messageData = {
+    recipient: {
+      id: recipientId
+    },
+    message: {
+      attachment: {
+        type: "image",
+        payload: {
+          url: "http://messengerdemo.parseapp.com/img/instagram_logo.gif"
+        }
+      }
     }
   };
 
@@ -128,4 +177,20 @@ function callSendAPI(messageData) {
   });  
 }
 
-console.log("El servidor se encuentra a la escucha en el puerto " + CUSTOME_PORT)
+function isContainsWorld(messageText, sentence){
+  return messageText.indexOf(sentence) > -1
+}
+
+function repeatWorld(messageText){
+  return messageText.replace(REPEAT_WORLD, "");
+}
+
+function GetWeather(){
+  var temperatura = 38;
+  final_message = "Ahora nos encontramos a "+ temperatura + "ºC"
+  if (temperatura > 30) {
+    final_message+=  ", Recomiento que no salgas"
+  }
+  return final_message;
+}
+
