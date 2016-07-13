@@ -1,23 +1,24 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 var request = require('request');
-
-var http = require('http');
-
 var app = express();
 
-https://github.com/request/request
-
-PAGE_ACCESS_TOKEN = 'EAAOQRGtWnHQBAHu3BGf7KDwnJdjcOkm8L0ja7RsnQ9JUoetdKzBZCT8L4c5fOt0j8DAcnceslQE7j3VzNoO9Rxn7N6Mpbv9fp04tgH4Paf8Q16No1bz8V3Q6Q1qQX67grZCmGdT4MSVAZBvEHOG9ohOgHIWmatUKLMFD2cN9YiMpCpZBPQdf'
+PAGE_ACCESS_TOKEN = 'EAAENT4pPJkkBAEWi0nBn7uZBYdGFcKDt3g9HUwufWxBjp8Nw2mX7T4j5CBxz8sR4JAYxs1bYqLO6rZC8GY0Mw73jW0STtanXe9DfjmeF9OuE3mBflJ2ugH9Cb575xDHB4m49OmNGVgsaQtViEEXe3rZCJc6bVLClJ0yMNY8f33KaNBc5jeE'
 CUSTOME_PORT = 3000
 REPEAT_WORLD = "repite "
 WEATHER = "clima"
 TEMPERATURE = "temperatura"
 WORKSHOP = "taller"
-CAT = "perro"
+
+CAT = "gato"
+DOG = "perro"
 HELP = "ayuda"
 
-MESSAGE_HELP = "Promocional para el taller del días viernes, crea un bot con facebook Messenger\nTrabajaremos con webhooks, con ngrok\nManejo de evento de Facebook"
+MESSAGE_HELP = "Puede pedir : el clima, imagenes de gatos de perro e información del taller"
+IMAGE_DOGS = ['IZCWuqy.jpg', 'bdh4Qpn.jpg', '2cGhWub', 'tjvD7lA', 'A3DbC8r', 'jl4Oje0', 'nwClYm0', '93hRNQG', 'BdJtY']
+IMAGE_CATS = ['SOFXhd6.jpg', 'C2IjdGW.jpg', 'h5mowK5.jpg' , '9uRmqxv.jpg', 'R63cYVM.jpg', 'EuQ4fPQ.jpg' , 'JniS4MF', 'DxhmtB5']
+URL_IMAGE = 'http://i.imgur.com/'
+
 
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
@@ -27,15 +28,9 @@ var server = app.listen( CUSTOME_PORT, function(){
   console.log("El servidor se encuentra a la escucha en el puerto " + port)
 });
 
+
 app.get('/', function (req, res) {
   res.send('Hola Mundo');
-});
-
-
-app.get('/clima', function (req, res) {
-  GetWeather( function(message){
-    res.send(message);
-  });  
 });
 
 app.get('/webhook', function (req, res) {
@@ -48,39 +43,23 @@ app.get('/webhook', function (req, res) {
 
 app.post('/webhook', function (req, res) {
   var data = req.body;
- 
   if (data.object == 'page') {
     data.entry.forEach(function(pageEntry) {
       pageEntry.messaging.forEach(function(messagingEvent) {
-      	
+        
         if (messagingEvent.message) {
           receivedMessage(messagingEvent);
         }
-
       });
     });
     res.sendStatus(200);
   }
 });
 
-/*
-app.post('/webhook_dos', function (req, res) {
-  var data = req.body;
-  console.log("nuevo mensaje");
-  //console.log(data.entry);
-  console.log(data.entry[0].messaging);
-  res.sendStatus(200);
-});
-*/
-
 function receivedMessage(event) {
   var senderID = event.sender.id;
   var message = event.message;
   var messageText = message.text;
-  var messageAttachments = message.attachments;
-
-  //console.log("Nuevo mensaje de " + senderID)
-  //console.log(messageText);
 
   if (messageText) {
     if (isContainsWorld(messageText, REPEAT_WORLD)){
@@ -93,10 +72,14 @@ function receivedMessage(event) {
       GetWeather( function(message){
          sendTextMessage(senderID, message);
       });
-      
+
     }else if (isContainsWorld(messageText, CAT)  ){
-  
-      sendImageMessage(senderID);
+
+      sendImageCat(senderID);
+
+    }else if (isContainsWorld(messageText, DOG)  ){
+
+      sendImageDog(senderID);
 
     }else if (isContainsWorld(messageText, HELP)  ){
   
@@ -104,20 +87,18 @@ function receivedMessage(event) {
 
     }else if (isContainsWorld(messageText, WORKSHOP) ){
 
-      var message = "El día viernes a las 5 de la tarde horario de México.";
+      var message = "El taller será el día viernes a las 5 de la tarde horario de México.";
       sendTextMessage(senderID, message);
 
     }else{
       
       switch (messageText) {
       case 'generic':
-        console.log("Vamos a enviar link");
         sendGenericMessage(senderID);
         break;
       default:
-        console.log("Vamos a enviar texto");
+        messageText = "Solo se repetir las cosas, escribe ayuda para más info.  " +messageText;
         sendTextMessage(senderID, messageText);
-        //sendGifMessage(senderID);
       }  
     }
   } 
@@ -131,7 +112,7 @@ function sendGenericMessage(recipientId) {
     recipient: {
       id: recipientId
     },
-    message: {	
+    message: {  
       attachment: {
         type: "template",
         payload: {
@@ -141,24 +122,6 @@ function sendGenericMessage(recipientId) {
       }
     }
   };  
-  callSendAPI(messageData);
-}
-
-function sendImageMessage(recipientId) {
-  //https://s3.amazonaws.com/StartupStockPhotos/20140808_StartupStockPhotos/85.jpg
-  var messageData = {
-    recipient: {
-      id: recipientId
-    },
-    message: {
-      attachment: {
-        type: "image",
-        payload: {
-          url: "http://i.imgur.com/IZCWuqy.jpg"
-        }
-      }
-    }
-  };
   callSendAPI(messageData);
 }
 
@@ -194,6 +157,40 @@ function sendTextMessage(recipientId, messageText) {
   callSendAPI(messageData);
 }
 
+
+function sendImageDog(recipientId){
+ pos_image = Math.floor(Math.random() * IMAGE_DOGS.length );
+ image = IMAGE_DOGS[pos_image]
+ url_image = URL_IMAGE + image
+ sendImageMessage(recipientId, url_image + ".jpg")
+}
+
+function sendImageCat(recipientId){
+  pos_image = Math.floor(Math.random() * IMAGE_CATS.length );
+  image = IMAGE_CATS[pos_image]
+  url_image = URL_IMAGE + image
+  console.log( url_image )
+  sendImageMessage(recipientId, url_image + ".jpg")
+}
+
+function sendImageMessage(recipientId, url_image) {
+  var messageData = {
+    recipient: {
+      id: recipientId
+    },
+    message: {
+      attachment: {
+        type: "image",
+        payload: {
+          url: url_image
+        }
+      }
+    }
+  };
+
+  callSendAPI(messageData);
+}
+
 function sendGifMessage(recipientId) {
   var messageData = {
     recipient: {
@@ -220,11 +217,11 @@ function callSendAPI(messageData) {
     json: messageData
 
   }, function (error, response, body) {
-  	if (error){
-  		console.error("Error al enviar el mensaje.\n");
-  	}else{
-  		console.log("El mensaje fue enviado correctamente.\n");
-  	}
+    if (error){
+      console.error("Error al enviar el mensaje.\n");
+    }else{
+      console.log("El mensaje fue enviado correctamente.\n");
+    }
   });  
 }
 
@@ -236,28 +233,19 @@ function repeatWorld(messageText){
   return messageText.replace(REPEAT_WORLD, "");
 }
 
-
-function foo(address, fn){
-  geocoder.geocode( { 'address': address}, function(results, status) {
-     fn(results[0].geometry.location); 
-  });
-}
-
 function GetWeather( callback ){
+    //http://www.geonames.org/enablefreewebservice
    temperature = request('http://api.geonames.org/findNearByWeatherJSON?lat=16.750000&lng=-93.116669&username=eduardo_gpg', function (error, response, data) {
      response = JSON.parse(data);
      temperature = response.weatherObservation.temperature;
 
-     final_message = "Ahora nos encontramos a "+ temperature + "ºC"
+     final_message = "Me dicen que tenemos una temperatura de "+ temperature + " ºC"
      if (temperature > 30) {
-        final_message+=  ",Te recomiento que no salgas."
+        final_message+=  ", te recomiento que no salgas."
     }else{
-        final_message+=  ",Un bonito día para disfrutar."
+        final_message+=  ", un bonito día para disfrutar."
     }
      callback(final_message);
   });
 
 }
-
-
-
