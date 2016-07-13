@@ -1,27 +1,59 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 var request = require('request');
+
+var http = require('http');
+
 var app = express();
 
-PAGE_ACCESS_TOKEN = 'EAAEGnfkOXJABAFmpaZAyc3s1ghK7kBKAaPWJIUbQH4SSg3uY9L0c2GHMie99kWdGuAeNWkkcEEANNEgt8b8wHq3MZAWCQUAZC7rNtXmIHCApIWLectSBonJe3n0gfK3UmRRpJn0Sxy07KMHfXG6ukpLixRPBlKELtUJBkeXZCXNFrM1tzyZCA'
+https://github.com/request/request
+
+PAGE_ACCESS_TOKEN = 'EAAOQRGtWnHQBAHu3BGf7KDwnJdjcOkm8L0ja7RsnQ9JUoetdKzBZCT8L4c5fOt0j8DAcnceslQE7j3VzNoO9Rxn7N6Mpbv9fp04tgH4Paf8Q16No1bz8V3Q6Q1qQX67grZCmGdT4MSVAZBvEHOG9ohOgHIWmatUKLMFD2cN9YiMpCpZBPQdf'
 CUSTOME_PORT = 3000
 REPEAT_WORLD = "repite "
 WEATHER = "clima"
 TEMPERATURE = "temperatura"
 WORKSHOP = "taller"
+CAT = "perro"
+HELP = "ayuda"
+
+MESSAGE_HELP = "Promocional para el taller del días viernes, crea un bot con facebook Messenger\nTrabajaremos con webhooks, con ngrok\nManejo de evento de Facebook"
 
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
-//app.listen((process.env.PORT || CUSTOME_PORT));
 
 var server = app.listen( CUSTOME_PORT, function(){
   var port = server.address().port
   console.log("El servidor se encuentra a la escucha en el puerto " + port)
-});
+  
+  request('http://api.geonames.org/findNearByWeatherJSON?lat=16.750000&lng=-93.116669&username=eduardo_gpg', function (error, response, data) {
+    response = JSON.parse(data);
+    console.log( response.weatherObservation.temperature ); 
+  });
 
+});
 
 app.get('/', function (req, res) {
   res.send('Hola Mundo');
+});
+
+function printWeather(city, weather) {
+    var message = 'In ' + city + ', there is ' + weather + ' degrees.';
+    console.log(message);
+}
+
+function printError(error) {
+    console.error(error.message);
+}
+
+app.get('/clima', function (req, res) {
+  var city = 'Tuxtla Gutierrez';
+  
+  var request = http.get('http://api.geonames.org/weatherIcaoJSON?ICAO=LSZH&username=demo', function(response) {
+    console.log(request);
+  });
+
+  res.send('El clima del día de hoy es ');
 });
 
 app.get('/webhook', function (req, res) {
@@ -48,6 +80,15 @@ app.post('/webhook', function (req, res) {
     res.sendStatus(200);
   }
 });
+/*
+app.post('/webhook_dos', function (req, res) {
+  var data = req.body;
+  console.log("nuevo mensaje");
+  //console.log(data.entry);
+  console.log(data.entry[0].messaging);
+  res.sendStatus(200);
+});
+*/
 
 function receivedMessage(event) {
   var senderID = event.sender.id;
@@ -55,8 +96,8 @@ function receivedMessage(event) {
   var messageText = message.text;
   var messageAttachments = message.attachments;
 
-  console.log("Nuevo mensaje de " + senderID)
-  console.log(messageText);
+  //console.log("Nuevo mensaje de " + senderID)
+  //console.log(messageText);
 
   if (messageText) {
     if (isContainsWorld(messageText, REPEAT_WORLD)){
@@ -68,6 +109,14 @@ function receivedMessage(event) {
       
       message = GetWeather();
       sendTextMessage(senderID, message);
+
+    }else if (isContainsWorld(messageText, CAT)  ){
+  
+      sendImageMessage(senderID);
+
+    }else if (isContainsWorld(messageText, HELP)  ){
+  
+      sendTextMessage(senderID, MESSAGE_HELP);
 
     }else if (isContainsWorld(messageText, WORKSHOP) ){
 
@@ -108,6 +157,24 @@ function sendGenericMessage(recipientId) {
       }
     }
   };  
+  callSendAPI(messageData);
+}
+
+function sendImageMessage(recipientId) {
+  //https://s3.amazonaws.com/StartupStockPhotos/20140808_StartupStockPhotos/85.jpg
+  var messageData = {
+    recipient: {
+      id: recipientId
+    },
+    message: {
+      attachment: {
+        type: "image",
+        payload: {
+          url: "http://i.imgur.com/IZCWuqy.jpg"
+        }
+      }
+    }
+  };
   callSendAPI(messageData);
 }
 
@@ -186,11 +253,13 @@ function repeatWorld(messageText){
 }
 
 function GetWeather(){
-  var temperatura = 38;
+  var temperatura = 31;
   final_message = "Ahora nos encontramos a "+ temperatura + "ºC"
   if (temperatura > 30) {
-    final_message+=  ", Recomiento que no salgas"
+    final_message+=  ",Te recomiento que no salgas."
   }
   return final_message;
 }
+
+
 
