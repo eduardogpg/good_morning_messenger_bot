@@ -25,35 +25,17 @@ app.use(bodyParser.json());
 var server = app.listen( CUSTOME_PORT, function(){
   var port = server.address().port
   console.log("El servidor se encuentra a la escucha en el puerto " + port)
-  
-  request('http://api.geonames.org/findNearByWeatherJSON?lat=16.750000&lng=-93.116669&username=eduardo_gpg', function (error, response, data) {
-    response = JSON.parse(data);
-    console.log( response.weatherObservation.temperature ); 
-  });
-
 });
 
 app.get('/', function (req, res) {
   res.send('Hola Mundo');
 });
 
-function printWeather(city, weather) {
-    var message = 'In ' + city + ', there is ' + weather + ' degrees.';
-    console.log(message);
-}
-
-function printError(error) {
-    console.error(error.message);
-}
 
 app.get('/clima', function (req, res) {
-  var city = 'Tuxtla Gutierrez';
-  
-  var request = http.get('http://api.geonames.org/weatherIcaoJSON?ICAO=LSZH&username=demo', function(response) {
-    console.log(request);
-  });
-
-  res.send('El clima del día de hoy es ');
+  GetWeather( function(message){
+    res.send(message);
+  });  
 });
 
 app.get('/webhook', function (req, res) {
@@ -80,6 +62,7 @@ app.post('/webhook', function (req, res) {
     res.sendStatus(200);
   }
 });
+
 /*
 app.post('/webhook_dos', function (req, res) {
   var data = req.body;
@@ -107,9 +90,10 @@ function receivedMessage(event) {
 
     }else if (isContainsWorld(messageText, WEATHER) || isContainsWorld(messageText, TEMPERATURE) ){
       
-      message = GetWeather();
-      sendTextMessage(senderID, message);
-
+      GetWeather( function(message){
+         sendTextMessage(senderID, message);
+      });
+      
     }else if (isContainsWorld(messageText, CAT)  ){
   
       sendImageMessage(senderID);
@@ -252,13 +236,27 @@ function repeatWorld(messageText){
   return messageText.replace(REPEAT_WORLD, "");
 }
 
-function GetWeather(){
-  var temperatura = 31;
-  final_message = "Ahora nos encontramos a "+ temperatura + "ºC"
-  if (temperatura > 30) {
-    final_message+=  ",Te recomiento que no salgas."
-  }
-  return final_message;
+
+function foo(address, fn){
+  geocoder.geocode( { 'address': address}, function(results, status) {
+     fn(results[0].geometry.location); 
+  });
+}
+
+function GetWeather( callback ){
+   temperature = request('http://api.geonames.org/findNearByWeatherJSON?lat=16.750000&lng=-93.116669&username=eduardo_gpg', function (error, response, data) {
+     response = JSON.parse(data);
+     temperature = response.weatherObservation.temperature;
+
+     final_message = "Ahora nos encontramos a "+ temperature + "ºC"
+     if (temperature > 30) {
+        final_message+=  ",Te recomiento que no salgas."
+    }else{
+        final_message+=  ",Un bonito día para disfrutar."
+    }
+     callback(final_message);
+  });
+
 }
 
 
