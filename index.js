@@ -198,7 +198,7 @@ function getUrlImageDogs(){
 }
 
 function getUrlImageCats(){
-  var images = ['http://i.imgur.com/IZCWuqy.jpg', 'http://i.imgur.com/bdh4Qpn.jpg', 'http://i.imgur.com/2cGhWub.jpg', 'http://i.imgur.com/tjvD7lA.jpg', 'http://i.imgur.com/A3DbC8r.jpg', 'http://i.imgur.com/jl4Oje0.jpg', 'http://i.imgur.com/nwClYm0.jpg', 'http://i.imgur.com/93hRNQG.jpg', 'http://i.imgur.com/BdJtY.jpg']
+  var images = ['http://i.imgur.com/SOFXhd6.jpg', 'http://i.imgur.com/C2IjdGW.jpg', 'http://i.imgur.com/h5mowK5.jpg', 'http://i.imgur.com/DxhmtB5.jpg', 'http://i.imgur.com/JniS4MF.jpg', 'http://i.imgur.com/9uRmqxv.jpg', 'http://i.imgur.com/nwClYm0.jpg', 'http://i.imgur.com/R63cYVM.jpg', 'http://i.imgur.com/O8XfDsC.jpg']
   return getRandomPosition(images);
 }
 
